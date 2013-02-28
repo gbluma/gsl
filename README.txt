@@ -10,7 +10,7 @@
 
 ### Scope and Goals
 
-GSL/4.1 is a code construction tool.  It will generate code in all languages and for all purposes.  If this sounds too good to be true, welcome to 1996, when we invented these techniques.  Magic is simply technology that is twenty years ahead of its time.
+GSL/4.1 is a code construction tool.  It will generate code in all languages and for all purposes.  If this sounds too good to be true, welcome to 1996, when we invented these techniques.  Magic is simply technology that is twenty years ahead of its time. In addition to code construction, GSL has been used to generate database schema definitions, user interfaces, reports, system administration tools and much more.
 
 This is the fourth major version of GSL, now considered a stable product, repackaged together with its dependencies for easy building from git.
 
@@ -39,7 +39,7 @@ To show command-line help:
 
 ### This Document
 
-This document was written by Pieter Hintjens in October 2010 based on two 2005 articles on 'model oriented programming', and the GSL reference manual.  This text is originally at README.txt and is built using [gitdown](http://github.com/imatix/gitdown).
+This document was written by Pieter Hintjens in October 2010 based on two 2005 articles on 'model oriented programming', and the GSL reference manual.  This text is originally at README.txt and is built using [gitdown](http://github.com/imatix/gitdown). The text was updated by Gyepi Sam in January 2013 to port documentation from earlier versions and to include more examples.
 
 ## Starting with GSL
 
@@ -121,7 +121,8 @@ We change our script to give the result below.
 
 Note these syntax aspects:
 
-* .template 0 - Start script (non-template) block * for childname - Repeat block for all instances of child item called childname
+* .template 0 - Start script (non-template) block
+* for childname - Repeat block for all instances of child item called childname
 
 We will run the new interest calculation script using this command:
 
@@ -157,7 +158,7 @@ lines with GSL commands. Like this:
     .   year = year + 1
     .endwhile
 
-I'm now going to generate a little HTML report of how the different calculations. The listing below shows the third version of interest.gsl:
+I'm now going to generate a little HTML report of the different calculations. The listing below shows the third version of interest.gsl:
 
     .output "deposits.html"
     <html>
@@ -399,7 +400,7 @@ lets us switch off automatic case conversion, using this instruction:
 
     ignorecase = 0
 
-This tells GSL, "variable names are case-sensitive, and do not convert variable values on output".
+This tells GSL, "variable names are case sensitive, and do not convert variable values on output".
 
 ### Looping through Trees
 
@@ -489,7 +490,7 @@ Near the end of the template you see this construction:
 
 What is going on here? The answer is, we're grabbing the whole &lt;content> block, including all the XML it contains, as a single string. Conveniently, XHTML is also XML, so we can read the XHTML content block as part of our XML data file. As a bonus, GSL will also validate it and tell you if there are errors, such as missing or malformed tags.
 
-The scope string() function returns a string that holds the XML value of the specified entity. For the index page, it returns this value (as a single string):
+The string() function returns a string that holds the XML value of the specified entity. For the index page, it returns this value (as a single string):
 
     <content><h3>Close to you</h3><p>We're just around the corner, if you live near by.</p><h3>Always open</h3><p>And if we're closed, just come back tomorrow.</p><h3>Cheap and convenient</h3><p>Much cheaper and easier than growing your own vegetables and fruit.</p></content>
 
@@ -790,15 +791,23 @@ Since we use the MOP approach to build the code generators themselves, we get ve
 
 ### Command-line Syntax
 
-To run GSL, use the following syntax
+To run GSL, use one of the following syntaxes:
 
-    gsl -<option> ... -<attr>[:<value>] ... filename ...
+    gsl -<option> ... -<attr>[:<value>] ... <filename> ...
+    gsl -a -<option> ... -<attr>[:<value>] <filename> <arg> ...
+
 
 If the filename has no extension, GSL tries to find an XML file with that name, or with the extension `.xml` (recognised by the &lt;?xml... tag on the first line).  If it finds no XML file it tries to find a file with that name or the extension `.gsl`, which it interprets as a GSL file.
 
 Options currently recognised by GSL are:
 
-* q, quiet: Suppresses copyright and other messages from GSL.
+* -a   argument: Pass arguments following filename to GSL script
+* -q   quiet:    suppress routine messages
+* -p   parallel: process files in parallel
+* -s:n size:n    set script cache size - default is 1000000
+* -h   help:     show command-line summary
+* -v   version:  show full version information
+
 
 Command-line attributes are loaded with an XML file and are available to a script.  This allows paramaters to be passed from the command line to the script.  The attribute script can be set to the name of a GSL file to be interpreted.
 
@@ -902,7 +911,6 @@ Look at the example:
     echo name
     echo global.name.value
 
-The first line loads the XML string &lt;A name = "2">Hello&lt;/A> (note the backslashes preceeding the quotation marks inside the string) into the attribute `name` of the global scope.  The second line prints the flattened value of the XML, while the third line outputs the attribute `value` of the attribute `name` of the scope `global`.  Note that the use or non-use of the scope `global` makes no difference in this case because no innermore scopes defined an attribute `name`.  The output of this GSL script is:
 
     2004/09/20 16:36:25: gsl/4 M: Hello
     2004/09/20 16:36:25: gsl/4 M: 2
@@ -1237,67 +1245,154 @@ switches
 
 ### Built-In Functions
 
+GSL provides many built-in functions and uses `modules` to group related functions.
+
+Functions are listed under their module name. Each function listing shows the arguments
+it accepts. Optional arguments are shown with square brackets '[]'. 
+
+If an optional argument is provided, then previous arguments must also be provided.
+For example, the function `directory.open([name], [error])` accepts two optional arguments.
+If the `error` argument is provided, then the `name` argument must also be provided.
+
+Some functions take no arguments.
+
+If a function is given an incorrect number of errors gsl will print an error on the console and terminate.
+
+If the provided arguments are of the wrong type or otherwise incorrect, the functions
+will return an undefined result, which can be handled with the default operator and tested
+with the defined() function.
+
+Some functions accept an optional parameter, listed as `error`. If the parameter is provided,
+and an error occurs, the associated error text will be placed in the parameter and can be used
+as shown in this example.
+
+.pull doc/examples/error-parameter.gsl,code
+
 #### conv
 
-    Class: Conversion Functions
-        Function: conv . chr (arg)
-        Function: conv . number (arg)
-        Function: conv . ord (arg)
-        Function: conv . string (arg)
+.pull doc/modules/ggconv.txt
 
 #### diag
 
-    Class: Diagnostic Functions
-        Function: diag . used ()
-        Function: diag . allocs ()
-        Function: diag . frees ()
-        Function: diag . display (filename)
-        Function: diag . checkall ()
-        Function: diag . raise (signal)
-        Function: diag . animate (value)
-        Function: diag . console_set_mode (mode)
+.pull doc/modules/ggdiag.txt
 
 #### environment
 
-    Class: Environment Functions
-        Function: env . get (name)
-        Function: env . set (name,[value])
-
+.pull doc/modules/ggenvt.txt
 
 #### fileio
 
-    Class: Directory
-        Function: directory . open ([path],[error])
-        Function: directory . setcwd (path,[error])
-        Function: directory . create (path)
-        Function: directory . delete (path,[error])
-        Function: directory . resolve (path,[separator])
+GSL provides three modules for dealing with directories and files; one directory module and two file modules,
+one for working with independent files and the second for working with files during a directory traversal.
+We will discuss the second set after the first because it will make more sense that way.
 
-    Class: File
-        Function: file . open (filename,[mode],[error])
-        Function: file . read (handle,[error])
-        Function: file . write (handle,string,[error])
-        Function: file . close (handle,[error])
-        Function: file . tell (handle,[error])
-        Function: file . seek (handle,[offset],[error])
-        Function: file . slurp (filename,[error])
-        Function: file . exists (filename,[error])
-        Function: file . timestamp (filename,[error])
-        Function: file . rename (oldname,newname,[error])
-        Function: file . delete (filename,[error])
-        Function: file . locate (filename,[path],[error])
-        Function: file . copy (src,dest,[mode],[error])
-        Function: file . basename (filename)
+Abstractedly, the modules have functions for working on, working with, and finding out about directories and files.
 
-    Class: Directory
+In the first category, directories have the `create` and `delete` functions which make them appear and disappear, modulo
+file permissions and other errors.  Files also have the same functions, but `create` is spelled `open`. In addition,
+files have functions to `rename` and `copy` them. An important note: while it is generally important to check for errors
+in most operations, these operations almost demand checking for errors. Use of the default operator and error parameter
+will be well rewarded with working programs.
 
-    Class: File
-        Function: <file entry> . open ([mode],[error])
-        Function: <file entry> . read ([error])
-        Function: <file entry> . write (string,[error])
-        Function: <file entry> . close ([error])
-        Function: <file entry> . tell ([error])
-        Function: <file entry> . seek ([offset],[error])
+The second set of functions deal with the "contents" of directories and files.
+
+A directory's purpose is too contain other files (directories are also files of a particular type).
+The only content operation is `open`, which returns a 'directory entry' object that can be used to iterate
+through the directory contents.
+
+Files are a little richer and have operations to open them and to read from or write to them
+and to control where in the file to read or write.
+
+File IO always begin with an open call, which returns a file handle.
+
+The file handle is used in all subsequent content operations on that file. When the text
+refers to operations that affect the `handle`, keep in mind that this is short hand for the
+longer 'operations that affect the file that the handle represents'. The file is actually what
+is being worked on.
+
+When opening a file, the `mode` parameter, a single letter, states how you intend to use the file,
+whether for 'r'eading, 'w'riting, or 'a'ppending.
+
+Reading can be done with file.read(handle, [error]).
+Writing is done in a corresponding manner.
+Reading can also be done with function `file.slurp`, which returns the contents of the file. It is a shortcut
+to a common operation.
+
+A file handle maintains an internal current file offset, which is a byte offset from the beginning of the file
+tells it where the next read or write should occur.
+A file opened for reading or writing will start of with an offset of 0,
+whereas a file opened for append mode will start with an offset corresponding to the end of the file.
+The offset changes to reflect any read or write operations on the file.
+This is actually more than one needs to know just to read or write a file.
+However, it is sometimes useful and necessary to skip around inside a file, which is what `tell` and `seek` do.
+The function `tell` returns the current offset and `seek` changes the offset.
+
+The final set of file functions manipulate files, file names and file metadata.
+
+#### Directory Iteration
+
+As mentioned, previously, directories can be opened with the `directory.open` function, which returns a 'directory entry' object.
+The 'directory object' represents a tree structure with child elements corresponding to the contents of the directory and can be
+iterated with a for/endfor loop. A child element is either a 'directory entry' or a 'file entry', depending on the file type.
+Both file and directory entries have a name() function, which returns 'file' or 'directory', as appropriate.
+
+The loop 
+
+    for dir. as elt
+
+    endfor
+
+will allow access to all child elements, but, of course, the loop could be limited to files with
+
+     for dir.file
+     endfor
+
+or directories with
+
+    for dir.directory
+
+    endfor
+
+During iteration, the File Entry functions can be called on current item. These are similar to their corresponding File functions
+but do not take a `handle` parameter. Note that the `open` function reads all directory entries at start so any changes to the file
+system until the next open call. Also, iteration is only defined over files and directories; non file or directory entries are ignored.
+The open call will fail if the target is not a directory or it cannot find any valid files or directories in the target directory.
+
+Direction iteration will only return
+
+The directory entry has the attributes:
+
+- path
+- name
+
+and the file entry has the following attributes:
+
+- path
+- name
+- size
+- time
+- date
+
+
+Which return the appropriate values from the file (or directory, which is, of course, a file).
+
+The following example shows some of the attributes in use:
+
+.pull doc/examples/directory-iteration.gsl,code
+
+Note that:
+
+
+If the directory entry `name` attribute is changed, the actual directory name is also changed.
+However, this operation does not return an error and cannot be recommended.
+
+The file entry's default attribute is `name` so `f.` is the same as `f.name`. Directory entries don't
+have this default attribute so it's only useful when working with file entries.
+
+File.open returns a File Entry object, so some of the file operations can be shortened a bit.
+For instance, file.read(handle) could also be written as handle.read(). 
+
+.pull doc/modules/ggfile.txt
 
 
 #### gsl control
@@ -1348,24 +1443,7 @@ switches
 
 #### process management
 
-    Class: Process
-        Function: proc . new (command,[workdir],[inname],[outname],[errname])
-            Creates a process object.  The command is a native system command.  Does
-                not execute the command.
-                Returns the process object.
-
-    Class: Process handle
-        Function: <proc handle> . setenv (name,[value])
-            Sets an environment variable for the process.  Can only be called before
-                the process is started with proc_handle.run ()
-
-        Function: <proc handle> . getenv (name)
-            Gets an environment variable from the process.
-
-        Function: <proc handle> . run ([error])
-            Runs a process created with proc.create ()
-                Returns -1 if there was an error creating the object.  Also places an
-                error message into the parameter error.
+.pull doc/modules/ggproc.txt
 
 #### script
 
@@ -1891,3 +1969,7 @@ Outputs the given expression to the standard output.
     .abort <expr>
 
 Outputs the given expression to the standard output and halts GSL operation.
+
+#### Examples
+
+See examples in Examples directory
